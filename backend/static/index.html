@@ -180,6 +180,7 @@ const nf = (x, d = 1) => Number(x).toLocaleString('es-ES', {minimumFractionDigit
 const bytes = b => b >= 1e9 ? nf(b / 1e9, 2) + ' GB' : b >= 1e6 ? nf(b / 1e6, 1) + ' MB' : nf(b / 1e3, 0) + ' KB';
 const dur = s => { s = Math.max(0, Math.floor(s)); const p = n => String(n).padStart(2, '0'); return `${p(Math.floor(s / 3600))}:${p(Math.floor(s % 3600 / 60))}:${p(s % 60)}`; };
 const LAB = {main: 'Main', backup: 'Backup'};
+const host = () => { let v = ''; try { v = localStorage.getItem('vn_host') || ''; } catch (_) {} return v || (S && S.public.host) || location.hostname; };
 let S = null, sel = null, connKey = null;
 let fmt = 'split'; try { fmt = localStorage.getItem('vn_fmt') || 'split'; } catch (_) {}
 const pv = {key: null, pc: null, retryAt: 0};
@@ -192,8 +193,8 @@ async function poll() {
 const cp = (label, value) => `<button type="button" class="cp" data-copy="${esc(value)}"><span class="v"><small>${label}</small><span class="mono">${esc(value)}</span></span><span class="cc">Copiar</span></button>`;
 
 function connHtml(c) {
-  const h = location.hostname, P = S.public;
-  let html = `<div class="row"><h3 style="margin:0">Datos de entrada</h3><span class="sp"></span><div class="seg" role="radiogroup" aria-label="Formato de los datos"><label><input type="radio" name="fmt" value="split" ${fmt === 'split' ? 'checked' : ''}><span>Dos campos</span></label><label><input type="radio" name="fmt" value="url" ${fmt === 'url' ? 'checked' : ''}><span>URL completa</span></label></div></div><p class="mu" style="margin:8px 0 0">Pulsa un campo para copiarlo. «Dos campos» sirve para programas con servidor y clave (OBS, vMix…).</p>`;
+  const h = host(), P = S.public, local = ['localhost', '127.0.0.1', '::1', '[::1]'].includes(h);
+  let html = `<div class="row"><h3 style="margin:0">Datos de entrada</h3><span class="sp"></span><div class="seg" role="radiogroup" aria-label="Formato de los datos"><label><input type="radio" name="fmt" value="split" ${fmt === 'split' ? 'checked' : ''}><span>Dos campos</span></label><label><input type="radio" name="fmt" value="url" ${fmt === 'url' ? 'checked' : ''}><span>URL completa</span></label></div></div><p class="mu" style="margin:8px 0 0">Pulsa un campo para copiarlo. «Dos campos» sirve para programas con servidor y clave (OBS, vMix…).</p><label class="mu" for="hostin" style="display:block;margin-top:12px">Dirección del servidor (la que usa tu encoder)</label><input id="hostin" class="in" value="${esc(h)}" placeholder="192.168.1.20" autocomplete="off">${local ? '<p style="color:var(--wn);margin:8px 0 0">«' + esc(h) + '» solo sirve en este equipo. Para emitir desde otro ordenador escribe aquí la IP del servidor.</p>' : ''}`;
   for (const role of ['main', 'backup']) {
     const key = c.keys[role];
     const rtmpSrv = `rtmp://${h}:${P.rtmp}/${c.name}`, rtmpKey = `${role}?user=verneta&pass=${key}`;
@@ -258,7 +259,7 @@ function render() {
   $('#ind').innerHTML = indHtml(ins.main) + indHtml(ins.backup);
   chart(ins);
 
-  const ck = c.name + location.hostname + fmt + JSON.stringify(c.keys);
+  const ck = c.name + host() + fmt + JSON.stringify(c.keys);
   if (connKey !== ck) { connKey = ck; $('#conn').innerHTML = connHtml(c); }
   $('#vtag').textContent = pr.online ? 'PREVIEW · PROGRAMA' : 'PREVIEW';
   startPreview(pr.online ? pr.path : null);
@@ -392,7 +393,7 @@ es.onmessage = e => { try { meterFrame(JSON.parse(e.data)); } catch (_) {} };
 let outKey = null, editing = null;
 const OST = {live: ['g', 'Conectada'], connecting: ['a', 'Conectando…'], retry: ['a', 'Reintentando'], available: ['g', 'Disponible'], off: ['', 'Apagada']};
 const maskUrl = o => o.url + (o.key ? '/••••' : '');
-const pullUrl = (o, ch) => o.protocol === 'srt' ? `srt://${location.hostname}:${S.public.srt}?streamid=read:${ch}/program` : `rtmp://${location.hostname}:${S.public.rtmp}/${ch}/program`;
+const pullUrl = (o, ch) => o.protocol === 'srt' ? `srt://${host()}:${S.public.srt}?streamid=read:${ch}/program` : `rtmp://${host()}:${S.public.rtmp}/${ch}/program`;
 function outRow(o, ch) {
   const dest = o.kind === 'pull'
     ? `<button type="button" class="cp" data-copy="${esc(pullUrl(o, ch))}"><span class="v"><span class="mono">${esc(pullUrl(o, ch))}</span></span><span class="cc">Copiar</span></button>`
@@ -410,7 +411,7 @@ function updOut(o) {
   el.querySelector('[data-f=time]').textContent = live && st.since ? dur(Date.now() / 1000 - st.since) : '—';
 }
 function renderOutputs(c) {
-  const outs = c.outputs || [], key = c.name + location.hostname + JSON.stringify(outs.map(o => [o.id, o.name, o.kind, o.protocol, o.enabled, o.url, o.key]));
+  const outs = c.outputs || [], key = c.name + host() + JSON.stringify(outs.map(o => [o.id, o.name, o.kind, o.protocol, o.enabled, o.url, o.key]));
   if (outKey !== key) { outKey = key; $('#olist').innerHTML = outs.map(o => outRow(o, c.name)).join('') || '<p class="mu">Aún no hay salidas. Añade un push a un CDN o un pull para reproductores locales.</p>'; }
   outs.forEach(updOut);
   $('#osum').textContent = `${outs.filter(o => o.enabled).length} activas · ${outs.filter(o => !o.enabled).length} apagadas`;
@@ -430,7 +431,12 @@ async function postMode() {
 }
 document.addEventListener('change', async e => {
   const t = e.target;
-  if (t.name === 'swmode' || t.id === 'lock') postMode();
+  if (t.id === 'hostin') {
+    const v = t.value.trim().replace(/^[a-z]+:\/\//i, '').replace(/[\/\s]+$/, '');
+    try { v ? localStorage.setItem('vn_host', v) : localStorage.removeItem('vn_host'); } catch (_) {}
+    connKey = null; outKey = null; render();
+  }
+  else if (t.name === 'swmode' || t.id === 'lock') postMode();
   else if (t.id === 'od-type') syncDlg();
   else if (t.dataset && t.dataset.otoggle) {
     const r = await fetch('/api/outputs/' + t.dataset.otoggle, {method: 'PATCH', headers: JH, body: JSON.stringify({enabled: t.checked})});

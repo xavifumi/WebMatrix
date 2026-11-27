@@ -20,7 +20,7 @@ INTERNAL_KEY = os.getenv("INTERNAL_KEY") or secrets.token_urlsafe(24)   # creden
 RTMP = os.getenv("MEDIAMTX_RTMP", "rtmp://mediamtx:1935")
 logging.getLogger("httpx").setLevel(logging.WARNING)
 programs = {}
-PORTS = {"webrtc": int(os.getenv("PUBLIC_WEBRTC_PORT", 8889)),
+PORTS = {"host": os.getenv("PUBLIC_HOST", ""), "webrtc": int(os.getenv("PUBLIC_WEBRTC_PORT", 8889)),
          "srt": int(os.getenv("PUBLIC_SRT_PORT", 8890)),
          "rtmp": int(os.getenv("PUBLIC_RTMP_PORT", 1935))}
 HIST, INTERVAL = 150, 2.0   # 150 muestras x 2 s = 5 min de gráfica

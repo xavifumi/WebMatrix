@@ -4,6 +4,9 @@ services:
     restart: unless-stopped
     volumes:
       - ./mediamtx/mediamtx.yml:/mediamtx.yml:ro
+    environment:
+      # Direcciones que MediaMTX anuncia para el preview WebRTC. Con PUBLIC_HOST definido funciona desde otros equipos.
+      MTX_WEBRTCADDITIONALHOSTS: "127.0.0.1${PUBLIC_HOST:+,}${PUBLIC_HOST}"
     ports:
       - "1935:1935"        # RTMP (entrada)
       - "8890:8890/udp"    # SRT (entrada)
@@ -16,6 +19,7 @@ services:
     restart: unless-stopped
     environment:
       MEDIAMTX_API: http://mediamtx:9997
+      PUBLIC_HOST: ${PUBLIC_HOST:-}      # IP o nombre del servidor visible desde tu red (p. ej. 192.168.1.20)
       INTERNAL_KEY: ${INTERNAL_KEY:-}   # opcional: clave interna fija; vacía = se genera en cada arranque
     volumes:
       - ./data:/data

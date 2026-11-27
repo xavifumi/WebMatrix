@@ -1,0 +1,25 @@
+services:
+  mediamtx:
+    image: bluenviron/mediamtx:1.21.4
+    restart: unless-stopped
+    volumes:
+      - ./mediamtx/mediamtx.yml:/mediamtx.yml:ro
+    ports:
+      - "1935:1935"        # RTMP (entrada)
+      - "8890:8890/udp"    # SRT (entrada)
+      - "8889:8889"        # WebRTC (preview, WHEP)
+      - "8189:8189/udp"    # WebRTC (media)
+    # La API (9997) y las métricas (9998) NO se publican: solo las ve la app.
+
+  app:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      MEDIAMTX_API: http://mediamtx:9997
+      INTERNAL_KEY: ${INTERNAL_KEY:-}   # opcional: clave interna fija; vacía = se genera en cada arranque
+    volumes:
+      - ./data:/data
+    ports:
+      - "8080:8080"        # panel de control
+    depends_on:
+      - mediamtx

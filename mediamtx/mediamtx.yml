@@ -1,0 +1,31 @@
+logLevel: info
+api: yes
+apiAddress: :9997
+metrics: yes
+metricsAddress: :9998
+# RTSP solo para uso interno: el backend lee de aquí el audio para los vúmetros (puerto no publicado).
+rtsp: yes
+rtspAddress: :8554
+hls: no
+rtmp: yes
+rtmpAddress: :1935
+srt: yes
+srtAddress: :8890
+webrtc: yes
+webrtcAddress: :8889
+webrtcLocalUDPAddress: :8189
+# Si ves el panel desde otro equipo, añade aquí la IP del servidor (p. ej. 192.168.1.20).
+webrtcAdditionalHosts:
+  - 127.0.0.1
+
+# Cada conexión se valida en el backend (clave por canal y entrada).
+# La API (9997) y las métricas (9998) quedan excluidas y no se publican fuera de Docker.
+authMethod: http
+authHTTPAddress: http://app:8080/api/auth
+authHTTPExclude:
+  - action: api
+  - action: metrics
+  - action: pprof
+
+paths:
+  all_others:

@@ -53,6 +53,12 @@ dashboard global y consumo por salida. Ver las fases del documento de visión.
 Publicar exige la clave de la entrada y leer `program` por SRT/RTMP exige una salida pull activa. Ver el panel todavía no
 pide usuario: úsalo en red local. No publiques los puertos 9997 ni 9998 de MediaMTX.
 
+## Problemas frecuentes
+
+- **`pip` no encuentra `av` al construir la imagen («from versions: none»):** suele ser un tiempo de espera de red. El
+  `Dockerfile` ya lo amplía; si persiste, repite `docker compose build --no-cache app`. Comprueba tu plataforma con
+  `docker run --rm python:3.12-slim uname -m` (hay paquetes precompilados para x86_64 y arm64).
+
 ## Flujo de trabajo
 
 `main` siempre estable. Cada cambio va en una rama `feature/...` y se integra con pull request. Las versiones se marcan

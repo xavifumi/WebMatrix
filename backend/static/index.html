@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Control de señal</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0}
+[hidden]{display:none!important}
+:root{--bg:#0e1114;--sf:#161a1f;--sf2:#1c2128;--bd:#272e37;--tx:#e8ebef;--mu:#a3adb8;--ac:#2dd4bf;--wn:#fbbf24;--er:#fca5a5;--ok:#86efac;}
+.app{display:grid;grid-template-columns:264px 1fr;grid-template-rows:56px 1fr;min-height:100vh;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.top{grid-column:1/3;display:flex;align-items:center;gap:24px;padding:0 24px;border-bottom:1px solid var(--bd);background:var(--sf);position:relative;z-index:5}
+.brand{font-weight:700;font-size:16px}
+.sp{flex:1}.mu{color:var(--mu)}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px}
+aside{border-right:1px solid var(--bd);padding:20px 16px;display:flex;flex-direction:column;gap:8px;background:var(--sf)}
+aside h2{margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mu)}
+.ch{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;text-align:left;padding:12px;border:1px solid var(--bd);border-radius:10px;background:var(--sf2);color:var(--tx);font:inherit;cursor:pointer;margin-bottom:8px}
+.ch.on{border-color:var(--ac)}
+.row{display:flex;align-items:center;gap:10px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--mu);flex:none}
+.g{background:var(--ok)}.a{background:var(--wn)}.r{background:var(--er)}
+button,summary.btn{font:inherit;color:var(--tx);background:var(--sf2);border:1px solid var(--bd);border-radius:8px;min-height:44px;padding:0 16px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+summary{list-style:none}summary::-webkit-details-marker{display:none}
+.pop{position:relative}
+.pc{position:absolute;z-index:30;right:0;top:52px;width:380px;max-width:90vw;max-height:75vh;overflow:auto;background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:18px;box-shadow:0 12px 32px rgba(0,0,0,.5)}
+.pc.l{left:0;right:auto;width:580px}
+.sb .pc{left:0;right:auto;width:280px}
+main{padding:24px;display:flex;flex-direction:column;gap:20px;min-width:0}
+h1{margin:0;font-size:24px}
+h3{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--mu);font-weight:600}
+.pn{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:18px;min-width:0}
+.cols{display:grid;gap:20px;grid-template-columns:3fr 2fr}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:999px;border:1px solid var(--bd);background:var(--sf2);font-weight:600;font-size:13px}
+.vid{position:relative;aspect-ratio:16/9;border-radius:10px;background:#000;overflow:hidden}
+.vid video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.vmsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mu);text-align:center;padding:16px}
+.tag{position:absolute;left:10px;top:10px;padding:2px 8px;border-radius:6px;background:rgba(0,0,0,.7);font-size:12px;font-weight:600;z-index:1}
+.ind{display:flex;gap:12px;margin-top:12px}
+.ind>div{flex:1;display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--sf2);border-radius:8px}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:8px 16px}
+dt{color:var(--mu)}dd{margin:0;text-align:right;font-weight:500}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+.kpi div{background:var(--sf2);border-radius:8px;padding:10px}
+.kpi b{display:block;font-size:18px}
+.url{display:flex;justify-content:space-between;gap:8px;align-items:center;background:var(--sf2);border-radius:8px;padding:6px 6px 6px 12px;margin-top:8px}
+.url span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.cp{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;margin-top:6px;padding:8px 12px;min-height:44px;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;cursor:pointer;color:var(--tx);font:inherit}
+.cp:hover,.cp:focus-visible{border-color:var(--ac)}
+.cp .v{overflow:hidden;min-width:0}.cp small{display:block;color:var(--mu);font-size:12px}
+.cp .mono{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cc{color:var(--mu);flex:none;font-size:12px}
+.in{min-height:44px;width:100%;background:var(--sf2);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:0 12px;font:inherit;margin-top:6px}
+button.pri{background:var(--ac);color:#06201c;border-color:var(--ac);font-weight:600}
+.dg{color:var(--er)}
+.seg{display:inline-flex;border:1px solid var(--bd);border-radius:8px;overflow:hidden}
+.seg label{position:relative;display:flex}
+.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer;width:100%;height:100%}
+.seg span{padding:0 14px;min-height:42px;display:flex;align-items:center;background:var(--sf2)}
+.seg input:checked+span{background:var(--ac);color:#06201c;font-weight:600}
+.seg input:focus-visible+span{outline:2px solid var(--tx);outline-offset:-2px}
+.vm{display:grid;grid-template-columns:64px 1fr 190px;gap:12px;align-items:center;margin-top:8px}
+.vb{display:flex;flex-direction:column;gap:3px}
+.mb{position:relative;height:9px;border-radius:2px;overflow:hidden;background:linear-gradient(90deg,#4ade80 0,#4ade80 70%,#fbbf24 70%,#fbbf24 90%,#f87171 90%,#f87171 100%)}
+.mb .cv{position:absolute;top:0;bottom:0;right:0;width:100%;background:var(--sf2)}
+.mb .pk{position:absolute;top:0;bottom:0;left:0;width:2px;background:var(--tx)}
+.vs{position:relative;height:14px;font-size:11px;color:var(--mu)}
+.vs span{position:absolute;transform:translateX(-50%)}
+.tg{position:relative;display:inline-flex;align-items:center;min-width:44px;min-height:44px}
+.tg input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;width:100%;height:100%;z-index:1}
+.tg i{width:44px;height:24px;border-radius:12px;background:#2a323b;border:1px solid #7b8794;position:relative}
+.tg i::after{content:"";position:absolute;left:3px;top:2px;width:16px;height:16px;border-radius:50%;background:var(--tx)}
+.tg input:checked+i{background:var(--ac);border-color:var(--ac)}
+.tg input:checked+i::after{left:23px;background:#06201c}
+.tg input:focus-visible+i{outline:2px solid var(--tx);outline-offset:2px}
+.oh,.or{display:grid;grid-template-columns:1.2fr 2.2fr 1.4fr .8fr .8fr .8fr auto auto;gap:16px;align-items:center}
+.oh{padding:0 12px 4px;color:var(--mu);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.or{padding:10px 12px;background:var(--sf2);border-radius:10px;margin-top:8px}
+.or>div{display:flex;flex-direction:column;min-width:0}
+.or .url{margin:0;background:var(--sf)}.or .cp{margin:0;background:var(--sf)}
+.or small{display:block;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+dialog{background:var(--sf);color:var(--tx);border:1px solid var(--bd);border-radius:12px;padding:20px;width:min(520px,92vw)}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+dialog label{display:block;margin-top:12px;color:var(--mu)}
+@media(max-width:900px){.oh{display:none}.or{grid-template-columns:1fr 1fr}}
+.vt.ok{color:var(--ok)}.vt.warn{color:var(--wn)}.vt.bad{color:var(--er)}.vt.off{color:var(--mu)}
+.ev{display:grid;grid-template-columns:70px 1fr;gap:12px}
+pre{background:var(--sf2);padding:12px;border-radius:8px;overflow:auto;margin:8px 0}
+@media(max-width:900px){.app{grid-template-columns:1fr}.top{grid-column:1}.cols{grid-template-columns:1fr}.kpi{grid-template-columns:repeat(2,1fr)}.ind{flex-direction:column}aside{border-right:0}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+<span class="brand">Control de señal</span>
+<span class="mu" id="srv">Conectando…</span>
+<span class="sp"></span>
+<details class="pop">
+<summary class="btn">Consumo · <span id="u-sum">—</span> este mes</summary>
+<div class="pc">
+<h3>Consumo de datos</h3>
+<dl>
+<dt>Mes · entrada</dt><dd id="u-min">—</dd>
+<dt>Mes · salida</dt><dd id="u-mout">—</dd>
+<dt>Sesión del canal · entrada</dt><dd id="u-sin">—</dd>
+<dt>Sesión del canal · salida</dt><dd id="u-sout">—</dd>
+</dl>
+<h3 style="margin-top:16px">Por canal (mes)</h3>
+<dl id="u-ch"></dl>
+</div>
+</details>
+</header>
+<aside class="sb"><h2>Canales</h2><div id="chlist"></div>
+<details class="pop" id="newch"><summary class="btn" style="width:100%;justify-content:center">Nuevo canal</summary>
+<form class="pc" id="newform"><h3>Nuevo canal</h3>
+<label class="mu" for="chname">Nombre (minúsculas, números, - y _)</label>
+<input id="chname" class="in" required maxlength="40" pattern="[a-z0-9][a-z0-9_-]*" autocomplete="off" placeholder="evento">
+<div id="cherr" style="margin:8px 0;color:var(--er)" role="alert"></div>
+<button type="submit" class="pri">Crear canal</button></form></details></aside>
+<main>
+<section class="pn" id="empty" hidden>
+<h3>Aún no hay canales</h3>
+<p>Pulsa «Nuevo canal», copia los datos de entrada en tu encoder (OBS, vMix, hardware) y la señal aparecerá aquí. Cada entrada, main y backup, tiene su propia clave.</p>
+<p class="mu">Sin encoder: <span class="mono">./scripts/test-sources.sh localhost NOMBRE</span></p>
+</section>
+<div id="detail" hidden style="display:flex;flex-direction:column;gap:20px">
+<div class="row" style="flex-wrap:wrap;gap:16px">
+<h1 id="title"></h1>
+<span class="badge" id="decision"></span>
+<details class="pop">
+<summary class="btn">Datos de entrada</summary>
+<div class="pc l" id="conn"></div>
+</details>
+<span class="sp"></span>
+<div class="seg" role="radiogroup" aria-label="Modo de conmutación"><label><input type="radio" name="swmode" value="auto"><span>Auto</span></label><label><input type="radio" name="swmode" value="main"><span>Forzar main</span></label><label><input type="radio" name="swmode" value="backup"><span>Forzar backup</span></label></div>
+<label class="row" style="gap:6px"><span class="mu">Lock</span><span class="tg"><input type="checkbox" role="switch" id="lock" aria-label="Bloquear la fuente actual"><i></i></span></label>
+</div>
+<div class="mu" id="note" hidden></div>
+<div class="cols">
+<section class="pn">
+<h3>Preview</h3>
+<div class="vid"><span class="tag" id="vtag">PREVIEW</span><video id="vid" muted autoplay playsinline></video><div class="vmsg" id="vmsg"></div></div>
+<div class="ind" id="ind"></div>
+<h3 style="margin:16px 0 0">Audio</h3>
+<div id="aud"></div>
+</section>
+<section class="pn">
+<h3>Señal activa</h3>
+<dl id="sig"></dl>
+<div class="kpi" id="kpi"></div>
+<svg id="chart" viewBox="0 0 300 100" role="img" aria-label="Bitrate de entrada, últimos 5 minutos" style="width:100%;height:auto;background:var(--sf2);border-radius:8px"></svg>
+<div class="row mu" style="margin-top:8px;gap:20px"><span><span class="dot" style="background:var(--ac)"></span> Main</span><span><span class="dot a"></span> Backup</span><span class="sp"></span><span id="cmax"></span></div>
+</section>
+</div>
+<section class="pn" id="outs">
+<div class="row" style="margin-bottom:12px"><h3 style="margin:0">Salidas</h3><span class="mu" id="osum"></span><span class="sp"></span><button type="button" class="pri" id="oadd">Añadir salida</button></div>
+<div class="oh"><span>Salida</span><span>Destino</span><span>Estado</span><span>Bitrate</span><span>Enviado</span><span>Tiempo</span><span></span><span></span></div>
+<div id="olist"></div>
+</section>
+<section class="pn"><h3>Eventos</h3><ul id="events"></ul></section>
+</div>
+</main>
+</div>
+<dialog id="odlg"><form id="odform" method="dialog">
+<h3 id="od-title">Nueva salida</h3>
+<label for="od-name">Nombre</label><input id="od-name" class="in" required maxlength="60" placeholder="YouTube Live">
+<label for="od-type">Tipo</label>
+<select id="od-type" class="in"><option value="push:rtmp">Push · RTMP</option><option value="push:rtmps">Push · RTMPS</option><option value="push:srt">Push · SRT</option><option value="pull:srt">Pull · SRT (para reproductores)</option><option value="pull:rtmp">Pull · RTMP (para reproductores)</option></select>
+<div id="od-push"><label for="od-url">URL del servidor</label><input id="od-url" class="in" placeholder="rtmp://a.rtmp.youtube.com/live2"><label for="od-key">Clave de retransmisión (opcional)</label><input id="od-key" class="in" autocomplete="off" placeholder="xxxx-xxxx-xxxx"></div>
+<p class="mu" id="od-pull" hidden>Un pull no necesita destino: la URL para reproducir aparece en la lista y se puede copiar.</p>
+<div id="od-err" style="margin:10px 0;color:var(--er)" role="alert"></div>
+<div class="row" style="gap:10px"><button type="submit" class="pri">Guardar</button><button type="button" id="od-cancel">Cancelar</button><span class="sp"></span><button type="button" class="dg" id="od-del">Eliminar</button></div>
+</form></dialog>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf = (x, d = 1) => Number(x).toLocaleString('es-ES', {minimumFractionDigits: d, maximumFractionDigits: d});
+const bytes = b => b >= 1e9 ? nf(b / 1e9, 2) + ' GB' : b >= 1e6 ? nf(b / 1e6, 1) + ' MB' : nf(b / 1e3, 0) + ' KB';
+const dur = s => { s = Math.max(0, Math.floor(s)); const p = n => String(n).padStart(2, '0'); return `${p(Math.floor(s / 3600))}:${p(Math.floor(s % 3600 / 60))}:${p(s % 60)}`; };
+const LAB = {main: 'Main', backup: 'Backup'};
+const host = () => { let v = ''; try { v = localStorage.getItem('vn_host') || ''; } catch (_) {} return v || (S && S.public.host) || location.hostname; };
+let S = null, sel = null, connKey = null;
+let fmt = 'split'; try { fmt = localStorage.getItem('vn_fmt') || 'split'; } catch (_) {}
+const pv = {key: null, pc: null, retryAt: 0};
+
+async function poll() {
+  try { S = await (await fetch('/api/state')).json(); render(); }
+  catch (e) { $('#srv').innerHTML = '<span class="dot r"></span> Sin conexión con el backend'; }
+}
+
+const cp = (label, value) => `<button type="button" class="cp" data-copy="${esc(value)}"><span class="v"><small>${label}</small><span class="mono">${esc(value)}</span></span><span class="cc">Copiar</span></button>`;
+
+function connHtml(c) {
+  const h = host(), P = S.public, local = ['localhost', '127.0.0.1', '::1', '[::1]'].includes(h);
+  let html = `<div class="row"><h3 style="margin:0">Datos de entrada</h3><span class="sp"></span><div class="seg" role="radiogroup" aria-label="Formato de los datos"><label><input type="radio" name="fmt" value="split" ${fmt === 'split' ? 'checked' : ''}><span>Dos campos</span></label><label><input type="radio" name="fmt" value="url" ${fmt === 'url' ? 'checked' : ''}><span>URL completa</span></label></div></div><p class="mu" style="margin:8px 0 0">Pulsa un campo para copiarlo. «Dos campos» sirve para programas con servidor y clave (OBS, vMix…).</p><label class="mu" for="hostin" style="display:block;margin-top:12px">Dirección del servidor (la que usa tu encoder)</label><input id="hostin" class="in" value="${esc(h)}" placeholder="192.168.1.20" autocomplete="off">${local ? '<p style="color:var(--wn);margin:8px 0 0">«' + esc(h) + '» solo sirve en este equipo. Para emitir desde otro ordenador escribe aquí la IP del servidor.</p>' : ''}`;
+  for (const role of ['main', 'backup']) {
+    const key = c.keys[role];
+    const rtmpSrv = `rtmp://${h}:${P.rtmp}/${c.name}`, rtmpKey = `${role}?user=verneta&pass=${key}`;
+    const srtSrv = `srt://${h}:${P.srt}`, sid = `publish:${c.name}/${role}:verneta:${key}`;
+    const rows = fmt === 'split'
+      ? [['RTMP · Servidor', rtmpSrv], ['RTMP · Clave de retransmisión', rtmpKey], ['SRT · Servidor', srtSrv], ['SRT · Stream ID', sid]]
+      : [['RTMP · URL completa', `${rtmpSrv}/${rtmpKey}`], ['SRT · URL completa', `${srtSrv}?streamid=${sid}`]];
+    html += `<div class="row" style="margin-top:16px"><b>${LAB[role]}${role === 'backup' ? ' (opcional)' : ''}</b><span class="sp"></span><button type="button" data-rotate="${role}">Regenerar clave</button></div>` + rows.map(([l, v]) => cp(l, v)).join('');
+  }
+  return html + '<div style="margin-top:18px"><button type="button" class="dg" data-del>Eliminar canal</button></div>';
+}
+
+function indHtml(i) {
+  const lab = LAB[i.role];
+  if (!i.configured) return `<div><span class="dot"></span><span><b>${lab}</b> · sin configurar</span></div>`;
+  if (!i.online) return `<div><span class="dot r"></span><span><b>${lab}</b> · sin señal</span></div>`;
+  const c = {ok: 'g', warn: 'a', bad: 'r'}[i.health];
+  return `<div><span class="dot ${c}"></span><span><b>${lab}</b> · recibiendo · ${esc(i.reason)}</span><span class="mu mono" style="margin-left:auto">${nf(i.mbps)} Mbps</span></div>`;
+}
+
+function chart(ins) {
+  const N = 150, all = [...(ins.main.hist || []), ...(ins.backup.hist || [])];
+  const max = Math.max(1, ...all) * 1.15;
+  const line = (h, col, dash) => {
+    if (!h.length) return '';
+    const pts = h.map((v, k) => `${((k + N - h.length) / (N - 1) * 300).toFixed(1)},${(95 - v / max * 90).toFixed(1)}`).join(' ');
+    return `<polyline fill="none" stroke="${col}" stroke-width="2" ${dash ? 'stroke-dasharray="4 3"' : ''} points="${pts}"/>`;
+  };
+  $('#chart').innerHTML = line(ins.main.hist || [], '#2dd4bf') + line(ins.backup.hist || [], '#fbbf24', true);
+  $('#cmax').textContent = `máx. ${nf(max, 1)} Mbps · 5 min`;
+}
+
+function render() {
+  $('#srv').innerHTML = S.ok ? '<span class="dot g"></span> MediaMTX conectado' : `<span class="dot r"></span> Sin conexión con MediaMTX${S.error ? ' · ' + esc(S.error) : ''}`;
+  const chs = S.channels;
+  if (!chs.find(c => c.name === sel)) sel = chs.length ? chs[0].name : null;
+  const um = S.usage;
+  $('#u-sum').textContent = bytes(um.month_in + um.month_out);
+  $('#u-min').textContent = bytes(um.month_in); $('#u-mout').textContent = bytes(um.month_out);
+  $('#u-ch').innerHTML = Object.entries(um.by_channel).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${bytes(v.in + v.out)}</dd>`).join('') || '<dt>—</dt><dd></dd>';
+
+  $('#chlist').innerHTML = chs.map(c => {
+    const a = c.program && c.program.active, r = a ? c.inputs[a] : null;
+    const col = !r ? 'r' : ({ok: 'g', warn: 'a', bad: 'r'}[r.health]);
+    const sub = !r ? 'Sin señal' : `${a === 'main' ? 'Main' : 'Backup activo'} · ${nf(r.mbps)} Mbps`;
+    return `<button class="ch ${c.name === sel ? 'on' : ''}" data-ch="${esc(c.name)}"><span class="row"><span class="dot ${col}"></span><b>${esc(c.name)}</b></span><span class="mu mono">${sub}</span></button>`;
+  }).join('');
+
+  $('#empty').hidden = chs.length > 0;
+  $('#detail').hidden = !sel;
+  if (!sel) { startPreview(null); return; }
+
+  const c = chs.find(x => x.name === sel), ins = c.inputs;
+  const pr = c.program || {};
+  const act = pr.active ? ins[pr.active] : (ins.main.online ? ins.main : ins.backup.online ? ins.backup : null);
+  $('#title').textContent = c.name;
+  $('#decision').innerHTML = pr.active ? `<span class="dot g"></span>Programa · ${LAB[pr.active]}${pr.mode !== 'auto' ? ' · forzado' : ''}${pr.locked ? ' · lock' : ''}` : '<span class="dot r"></span>Sin programa';
+  document.querySelectorAll('input[name=swmode]').forEach(i => { i.checked = i.value === (pr.mode || 'auto'); });
+  $('#lock').checked = !!pr.locked;
+  const note = pr.pending ? `Cambiando a ${LAB[pr.pending]} en el próximo keyframe…` : (!pr.online ? 'El programa se publica en cuanto llega alguna señal.' : '');
+  $('#note').textContent = note; $('#note').hidden = !note;
+  $('#ind').innerHTML = indHtml(ins.main) + indHtml(ins.backup);
+  chart(ins);
+
+  const ck = c.name + host() + fmt + JSON.stringify(c.keys);
+  if (connKey !== ck) { connKey = ck; $('#conn').innerHTML = connHtml(c); }
+  $('#vtag').textContent = pr.online ? 'PREVIEW · PROGRAMA' : 'PREVIEW';
+  startPreview(pr.online ? pr.path : null);
+  renderOutputs(c);
+
+  const v = act && act.video, a = act && act.audio, s = act && act.srt;
+  const row = (k, x) => `<dt>${k}</dt><dd>${x}</dd>`;
+  $('#sig').innerHTML = act ? [
+    row('Protocolo', esc(act.protocol)),
+    row('Vídeo', v ? `${esc(v.codec)} ${esc(v.profile || '')}${v.level ? '@' + esc(v.level) : ''}` : '—'),
+    row('Resolución', v ? `${v.width}×${v.height}` : '—'),
+    row('Audio', a ? `${esc(a.codec)} ${nf(a.sampleRate / 1000, 0)} kHz · ${a.channels} can.` : 'sin audio'),
+    row('Tramas con error', act.errors),
+    row('Lectores', act.readers),
+    row('Origen', s ? esc(s.remote) : '—'),
+    row('Tiempo activo', act.since ? dur((Date.now() - Date.parse(act.since)) / 1000) : '—')
+  ].join('') : row('Estado', 'sin señal');
+  $('#kpi').innerHTML = [['Bitrate', act ? nf(act.mbps) + ' Mbps' : '—'], ['RTT', s ? nf(s.rtt, 1) + ' ms' : '—'],
+    ['Pérdida', s ? nf(s.loss_pct, 2) + ' %' : act ? 'no aplica' : '—'], ['Retrans.', s ? s.retrans : '—']]
+    .map(([k, x]) => `<div><span class="mu">${k}</span><b>${x}</b></div>`).join('');
+
+  const evs = S.events.filter(e => e.channel === sel).slice(0, 12);
+  $('#events').innerHTML = evs.map(e => `<li class="ev"><span class="mono mu">${new Date(e.ts).toLocaleTimeString('es-ES')}</span><span>${esc(e.message)}</span></li>`).join('') || '<li class="mu">Sin eventos</li>';
+}
+
+function stopPreview() {
+  if (pv.pc) { try { pv.pc.close(); } catch (e) {} }
+  pv.pc = null; pv.key = null; $('#vid').srcObject = null;
+}
+
+async function startPreview(path) {
+  if (pv.key === path && (pv.pc || !path)) return;
+  if (path && Date.now() < pv.retryAt) return;
+  stopPreview(); pv.key = path;
+  if (!path) { $('#vmsg').textContent = 'Sin señal'; return; }
+  $('#vmsg').textContent = 'Conectando preview…';
+  const pc = new RTCPeerConnection(); pv.pc = pc;
+  const fail = m => { if (pv.pc === pc) { stopPreview(); pv.retryAt = Date.now() + 4000; $('#vmsg').textContent = m; } };
+  pc.addTransceiver('video', {direction: 'recvonly'}); pc.addTransceiver('audio', {direction: 'recvonly'});
+  pc.ontrack = e => { $('#vid').srcObject = e.streams[0]; $('#vmsg').textContent = ''; };
+  pc.onconnectionstatechange = () => { if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) fail('Preview interrumpido, reintentando…'); };
+  try {
+    await pc.setLocalDescription(await pc.createOffer());
+    await new Promise(res => { if (pc.iceGatheringState === 'complete') return res(); pc.onicegatheringstatechange = () => pc.iceGatheringState === 'complete' && res(); setTimeout(res, 2000); });
+    const r = await fetch(`${location.protocol}//${location.hostname}:${S.public.webrtc}/${path}/whep`, {method: 'POST', headers: {'Content-Type': 'application/sdp'}, body: pc.localDescription.sdp});
+    if (!r.ok) throw new Error('WHEP ' + r.status);
+    await pc.setRemoteDescription({type: 'answer', sdp: await r.text()});
+  } catch (err) { fail('Preview no disponible (' + err.message + ')'); }
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-ch]');
+  if (b) { sel = b.dataset.ch; render(); return; }
+  const c = e.target.closest('[data-copy]');
+  if (c) {
+    const t = c.dataset.copy;
+    const l = c.querySelector('.cc') || c;
+    const done = () => { l.textContent = 'Copiado'; setTimeout(() => l.textContent = 'Copiar', 1200); };
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(done);
+    else { const x = document.createElement('textarea'); x.value = t; document.body.appendChild(x); x.select(); document.execCommand('copy'); x.remove(); done(); }
+  }
+});
+document.addEventListener('change', e => {
+  if (e.target.name === 'fmt') { fmt = e.target.value; try { localStorage.setItem('vn_fmt', fmt); } catch (_) {} connKey = null; render(); }
+});
+document.addEventListener('click', async e => {
+  const k = e.target.closest('[data-rotate]');
+  if (k && confirm(`¿Regenerar la clave de ${k.dataset.rotate}? La anterior dejará de servir para nuevas conexiones.`)) {
+    await fetch(`/api/channels/${encodeURIComponent(sel)}/inputs/${k.dataset.rotate}/rotate-key`, {method: 'POST'}); connKey = null; poll();
+  }
+  if (e.target.closest('[data-del]') && confirm(`¿Eliminar el canal "${sel}" y sus claves?`)) {
+    await fetch('/api/channels/' + encodeURIComponent(sel), {method: 'DELETE'}); sel = null; connKey = null; poll();
+  }
+});
+$('#newform').addEventListener('submit', async e => {
+  e.preventDefault(); $('#cherr').textContent = '';
+  const r = await fetch('/api/channels', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({name: $('#chname').value})});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { $('#cherr').textContent = j.detail || 'Error al crear el canal'; return; }
+  $('#chname').value = ''; $('#newch').open = false; sel = j.name; connKey = null; await poll();
+});
+const pct = v => Math.max(0, Math.min(100, (v + 60) / 60 * 100));
+const hold = {}, win = {}, mst = {};
+$('#aud').innerHTML = ['main', 'backup'].map(role => `<div class="vm" data-vm="${role}"><b>${LAB[role]}</b><div class="vb"><div class="mb"><i class="cv"></i><b class="pk"></b></div><div class="mb"><i class="cv"></i><b class="pk"></b></div></div><span class="vt mono"></span></div>`).join('')
+  + `<div class="vm"><span></span><div class="vs">${[[-60, '-60'], [-40, '-40'], [-20, '-20'], [-10, '-10'], [-6, '-6'], [0, '0 dB']].map(([v, t]) => `<span style="left:${pct(v)}%">${t}</span>`).join('')}</div><span></span></div>`;
+
+function meterFrame(data) {
+  if (!S) return;
+  const ch = S.channels.find(c => c.name === sel), now = performance.now();
+  for (const role of ['main', 'backup']) {
+    const el = document.querySelector(`[data-vm="${role}"]`), inp = ch && ch.inputs[role];
+    if (!el) continue;
+    const m = inp && data[inp.path], bars = el.querySelectorAll('.mb'), txt = el.querySelector('.vt');
+    let status = '', cls = 'off', live = false;
+    if (!inp || !inp.online) status = 'sin señal';
+    else if (!inp.audio) status = 'sin pista de audio';
+    else if (!m || m.age > 2) status = 'midiendo…';
+    else {
+      live = true;
+      const pk = Math.max(...m.peak), w = win[role] || (win[role] = []);
+      w.push([now, pk]);
+      while (w.length && now - w[0][0] > 8000) w.shift();
+      const span = now - w[0][0], l3 = w.filter(x => now - x[0] <= 3000), l6 = w.filter(x => now - x[0] <= 6000);
+      const clip = l3.filter(x => x[1] > -1).length / l3.length, top = Math.max(...l6.map(x => x[1]));
+      let st = mst[role] || 'ok';
+      if (st === 'sat') { if (clip < 0.05) st = 'ok'; }
+      else if (st === 'low') { if (top > -42) st = 'ok'; }
+      else if (span >= 3000 && clip >= 0.25) st = 'sat';
+      else if (span >= 6000 && top < -45) st = 'low';
+      mst[role] = st;
+      if (m.silent_s >= 3) { status = `Silencio · ${Math.floor(m.silent_s)} s`; cls = 'warn'; }
+      else if (span < 3000) { status = 'midiendo…'; }
+      else if (st === 'sat') { status = 'Saturando'; cls = 'bad'; }
+      else if (st === 'low') { status = 'Muy bajo'; cls = 'warn'; }
+      else { status = 'Correcto'; cls = 'ok'; }
+    }
+    if (!live) { win[role] = []; mst[role] = 'ok'; }
+    bars.forEach((b, i) => {
+      const used = live && i < m.peak.length;
+      b.style.visibility = (i > 0 && live && m.peak.length < 2) ? 'hidden' : 'visible';
+      const rms = used ? m.rms[i] : -90, pk = used ? m.peak[i] : -90, k = role + i, h = hold[k] || (hold[k] = {v: -90, t: 0});
+      if (pk >= h.v) { h.v = pk; h.t = now; } else if (now - h.t > 1500) h.v = Math.max(pk, h.v - 0.8);
+      b.querySelector('.cv').style.width = (100 - pct(rms)) + '%';
+      b.querySelector('.pk').style.left = `calc(${pct(h.v)}% - 2px)`;
+    });
+    txt.textContent = status; txt.className = 'vt mono ' + cls;
+  }
+}
+const es = new EventSource('/api/meters');
+es.onmessage = e => { try { meterFrame(JSON.parse(e.data)); } catch (_) {} };
+let outKey = null, editing = null;
+const OST = {live: ['g', 'Conectada'], connecting: ['a', 'Conectando…'], retry: ['a', 'Reintentando'], available: ['g', 'Disponible'], off: ['', 'Apagada']};
+const maskUrl = o => o.url + (o.key ? '/••••' : '');
+const pullUrl = (o, ch) => o.protocol === 'srt' ? `srt://${host()}:${S.public.srt}?streamid=read:${ch}/program` : `rtmp://${host()}:${S.public.rtmp}/${ch}/program`;
+function outRow(o, ch) {
+  const dest = o.kind === 'pull'
+    ? `<button type="button" class="cp" data-copy="${esc(pullUrl(o, ch))}"><span class="v"><span class="mono">${esc(pullUrl(o, ch))}</span></span><span class="cc">Copiar</span></button>`
+    : `<div class="url mono"><span>${esc(maskUrl(o))}</span></div>`;
+  return `<div class="or" data-oid="${o.id}"><div><b>${esc(o.name)}</b><span class="mu">${o.kind === 'push' ? 'Push' : 'Pull'} ${o.protocol.toUpperCase()}</span></div><div>${dest}</div><div data-f="st"></div><div data-f="br"></div><div data-f="sent"></div><div data-f="time"></div><label class="tg"><input type="checkbox" role="switch" data-otoggle="${o.id}" ${o.enabled ? 'checked' : ''} aria-label="Activar ${esc(o.name)}"><i></i></label><button type="button" data-oedit="${o.id}">Editar</button></div>`;
+}
+function updOut(o) {
+  const el = document.querySelector(`[data-oid="${o.id}"]`); if (!el) return;
+  const st = o.status || {}, [dot, label] = o.enabled ? (OST[st.state] || ['', '—']) : ['', 'Apagada'];
+  const err = o.enabled && st.state === 'retry' && st.error ? `<small class="mu" title="${esc(st.error)}">${esc(st.error)}</small>` : '';
+  const live = o.kind === 'push' && o.enabled && st.state === 'live';
+  el.querySelector('[data-f=st]').innerHTML = `<span><span class="dot ${dot}"></span> ${esc(label)}${st.state === 'retry' ? ` (${st.attempts})` : ''}</span>${err}`;
+  el.querySelector('[data-f=br]').textContent = live ? nf(st.bitrate_kbps / 1000) + ' Mbps' : '—';
+  el.querySelector('[data-f=sent]').textContent = o.kind === 'push' && st.sent ? bytes(st.sent) : '—';
+  el.querySelector('[data-f=time]').textContent = live && st.since ? dur(Date.now() / 1000 - st.since) : '—';
+}
+function renderOutputs(c) {
+  const outs = c.outputs || [], key = c.name + host() + JSON.stringify(outs.map(o => [o.id, o.name, o.kind, o.protocol, o.enabled, o.url, o.key]));
+  if (outKey !== key) { outKey = key; $('#olist').innerHTML = outs.map(o => outRow(o, c.name)).join('') || '<p class="mu">Aún no hay salidas. Añade un push a un CDN o un pull para reproductores locales.</p>'; }
+  outs.forEach(updOut);
+  $('#osum').textContent = `${outs.filter(o => o.enabled).length} activas · ${outs.filter(o => !o.enabled).length} apagadas`;
+}
+const syncDlg = () => { const pull = $('#od-type').value.startsWith('pull'); $('#od-push').hidden = pull; $('#od-pull').hidden = !pull; };
+function openDlg(o) {
+  editing = o; $('#od-title').textContent = o ? 'Editar salida' : 'Nueva salida';
+  $('#od-name').value = o ? o.name : ''; $('#od-type').value = o ? `${o.kind}:${o.protocol}` : 'push:rtmp'; $('#od-type').disabled = !!o;
+  $('#od-url').value = o ? o.url : ''; $('#od-key').value = o ? o.key : ''; $('#od-err').textContent = ''; $('#od-del').hidden = !o;
+  syncDlg(); $('#odlg').showModal();
+}
+const JH = {'Content-Type': 'application/json'};
+const curCh = () => S.channels.find(c => c.name === sel);
+async function postMode() {
+  const mode = (document.querySelector('input[name=swmode]:checked') || {}).value || 'auto';
+  await fetch(`/api/channels/${encodeURIComponent(sel)}/mode`, {method: 'POST', headers: JH, body: JSON.stringify({mode, locked: $('#lock').checked})}); poll();
+}
+document.addEventListener('change', async e => {
+  const t = e.target;
+  if (t.id === 'hostin') {
+    const v = t.value.trim().replace(/^[a-z]+:\/\//i, '').replace(/[\/\s]+$/, '');
+    try { v ? localStorage.setItem('vn_host', v) : localStorage.removeItem('vn_host'); } catch (_) {}
+    connKey = null; outKey = null; render();
+  }
+  else if (t.name === 'swmode' || t.id === 'lock') postMode();
+  else if (t.id === 'od-type') syncDlg();
+  else if (t.dataset && t.dataset.otoggle) {
+    const r = await fetch('/api/outputs/' + t.dataset.otoggle, {method: 'PATCH', headers: JH, body: JSON.stringify({enabled: t.checked})});
+    if (!r.ok) t.checked = !t.checked; poll();
+  }
+});
+document.addEventListener('click', async e => {
+  if (e.target.closest('#oadd')) openDlg(null);
+  const ed = e.target.closest('[data-oedit]');
+  if (ed) openDlg(curCh().outputs.find(o => o.id == ed.dataset.oedit));
+  if (e.target.closest('#od-cancel')) $('#odlg').close();
+  if (e.target.closest('#od-del') && editing && confirm(`¿Eliminar la salida «${editing.name}»?`)) {
+    await fetch('/api/outputs/' + editing.id, {method: 'DELETE'}); $('#odlg').close(); outKey = null; poll();
+  }
+});
+$('#odform').addEventListener('submit', async e => {
+  e.preventDefault();
+  const [kind, protocol] = $('#od-type').value.split(':'), body = JSON.stringify({name: $('#od-name').value, kind, protocol, url: $('#od-url').value, key: $('#od-key').value});
+  const r = editing ? await fetch('/api/outputs/' + editing.id, {method: 'PATCH', headers: JH, body})
+                    : await fetch(`/api/channels/${encodeURIComponent(sel)}/outputs`, {method: 'POST', headers: JH, body});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { $('#od-err').textContent = j.detail || 'Error al guardar'; return; }
+  $('#odlg').close(); outKey = null; poll();
+});
+poll(); setInterval(poll, 2000);
+</script>
+</body>
+</html>

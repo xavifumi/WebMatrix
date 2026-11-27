@@ -53,6 +53,21 @@ dashboard global y consumo por salida. Ver las fases del documento de visión.
 Publicar exige la clave de la entrada y leer `program` por SRT/RTMP exige una salida pull activa. Ver el panel todavía no
 pide usuario: úsalo en red local. No publiques los puertos 9997 ni 9998 de MediaMTX.
 
+## Emitir desde otro ordenador
+
+1. Crea un archivo `.env` junto al `docker-compose.yml` (hay un ejemplo en `.env.example`) con `PUBLIC_HOST=` y la IP del servidor, y ejecuta `docker compose up -d`.
+   Con eso las URLs del panel usan esa IP y el preview funciona desde otros equipos.
+2. Sin `.env`, abre el panel con la IP (`http://IP:8080`) en vez de `localhost`, o escribe la IP en el campo «Dirección del servidor» de **Datos de entrada**.
+3. Abre en el cortafuegos del servidor los puertos **1935/TCP** (RTMP), **8890/UDP** (SRT), **8889/TCP** y **8189/UDP** (preview).
+4. Si no llega nada, mira `docker compose logs -f mediamtx app`: sin líneas de conexión es la red o el cortafuegos; con errores de
+   autenticación es la clave.
+
+## Problemas frecuentes
+
+- **`pip` no encuentra `av` al construir la imagen («from versions: none»):** suele ser un tiempo de espera de red. El
+  `Dockerfile` ya lo amplía; si persiste, repite `docker compose build --no-cache app`. Comprueba tu plataforma con
+  `docker run --rm python:3.12-slim uname -m` (hay paquetes precompilados para x86_64 y arm64).
+
 ## Flujo de trabajo
 
 `main` siempre estable. Cada cambio va en una rama `feature/...` y se integra con pull request. Las versiones se marcan
